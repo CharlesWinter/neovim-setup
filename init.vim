@@ -22,7 +22,7 @@ let g:rainbow_active = 1
 " ------------------------------- "
 " --- Dracula Colorscheme --- "
 " ------------------------------- "
- colorscheme dracula
+colorscheme dracula
 
 " ------------------------------- "
 " --- Leader key alternatives --- "
@@ -89,9 +89,9 @@ nnoremap <Leader>r :%s/\<<C-r><C-w>\>/
 " highlight current word without jumping to the next occurrence
 map <Leader>h :let @/ = '\<'.expand('<cword>').'\>'\|set hlsearch<C-M>
 
-" ----------------------------------- "
-" --- Search for visual selection --- "
-" ----------------------------------- "
+"" ----------------------------------- "
+"" --- Search for visual selection --- "
+"" ----------------------------------- "
 
 " Search for selected text, forwards or backwards. It is case insensitive, and
 " any whitespace is matched ('hello\nworld' matches 'hello world')
@@ -364,7 +364,7 @@ nnoremap <Leader>o :call InsertPasteNewLine()<CR>
 " https://stackoverflow.com/questions/7501092/can-i-map-alt-key-in-vim
 " http://vim.wikia.com/wiki/Get_Alt_key_to_work_in_terminal
 if !has('nvim') && has('linux')
-  set <M-d>=d
+  set <M-d>=d
 elseif has('osxdarwin')
   set <M-d>=∂
 end
@@ -559,21 +559,34 @@ let g:fzf_buffers_jump = 0
 nmap <C-p> :Files<CR>
 noremap <Leader>b :Buffers<CR>
 
-lua <<EOF
-  nvim_lsp = require "nvim_lsp"
-  nvim_lsp.gopls.setup {
-    cmd = {"gopls", "serve"},
+lua << EOF
+  local lsp_config = require 'lspconfig'
+  lsp_config.gopls.setup{
+    cmd = {"gopls"};
+    filetypes = {"go", "gomod"};
+    root_dir = lsp_config.util.root_pattern("go.mod", ".git");
+    log_level = vim.lsp.protocol.MessageType.Log;
     settings = {
       gopls = {
         analyses = {
           unusedparams = true,
         },
         staticcheck = true,
-      },
-    },
+      }
+    }
   }
 
-  function goimports(timeoutms)
+	-- Use an on_attach function to only map the following keys
+	-- after the language server attaches to the current buffer
+	local on_attach = function(client, bufnr)
+		local function buf_set_keymap(...) vim.api.nvim_buf_set_keymap(bufnr, ...) end
+		local function buf_set_option(...) vim.api.nvim_buf_set_option(bufnr, ...) end
+
+		-- Enable completion triggered by <c-x><c-o>
+		buf_set_option('omnifunc', 'v:lua.vim.lsp.omnifunc')
+	end
+
+	function goimports(timeoutms)
     local context = { source = { organizeImports = true } }
     vim.validate { context = { context, "t", true } }
 
@@ -593,16 +606,15 @@ lua <<EOF
     vim.lsp.buf.formatting()
   end
 EOF
-"  local nvim_lsp = require 'nvim_lsp'
-"  nvim_lsp.gopls.setup{
-"    cmd = {"gopls"};
-"    filetypes = {"go"};
-"    root_dir = nvim_lsp.util.root_pattern("go.mod", ".git");
-"    log_level = vim.lsp.protocol.MessageType.Log;
-"    settings = {}
-"  }
 
 autocmd BufWritePre *.go lua goimports(1000)
 nnoremap <silent> gd <cmd>lua vim.lsp.buf.definition()<CR>
+set completeopt-=preview
+nnoremap <silent> K <cmd>lua vim.lsp.buf.hover()<CR>
 
 autocmd Filetype go setlocal omnifunc=v:lua.vim.lsp.omnifunc
+
+" ---------------------------------------------------- "
+" --- copy and paste straight onto system clipboard--- "
+" ---------------------------------------------------- "
+set clipboard=unnamedplus
