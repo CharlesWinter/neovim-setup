@@ -11,18 +11,19 @@ call plug#begin('~/.local/share/nvim/plugged')
   Plug 'junegunn/fzf.vim'
   Plug 'luochen1990/rainbow'
   Plug 'neovim/nvim-lspconfig'
+  Plug 'kyazdani42/nvim-web-devicons'
+	Plug 'folke/trouble.nvim'
+  Plug 'tpope/vim-fugitive'
+  Plug 'tpope/vim-commentary'
+  Plug 'mg979/vim-visual-multi'
 
 call plug#end()
 
 " ------------------------------- "
 " --- Vim Plug--------------- --- "
 " ------------------------------- "
-let g:rainbow_active = 1
 
-" ------------------------------- "
-" --- Dracula Colorscheme --- "
-" ------------------------------- "
-colorscheme dracula
+color dracula
 
 " ------------------------------- "
 " --- Leader key alternatives --- "
@@ -200,6 +201,13 @@ set splitright
 " Close the current buffer without closing the window
 " <http://stackoverflow.com/a/8585343/417375>
 nnoremap <Leader>q :bp<bar>sp<bar>bn<bar>bd<CR>
+"
+" ------------------------- "
+" --- Vim Commentary -- "
+" ------------------------- "
+
+nmap <Leader>c gcc
+vmap <Leader>c gc
 
 " ---------------- "
 " --- Wrapping --- "
@@ -605,6 +613,12 @@ lua << EOF
 
     vim.lsp.buf.formatting()
   end
+
+  require("trouble").setup {
+    -- your configuration comes here
+    -- or leave it empty to use the default settings
+    -- refer to the configuration section below
+    }
 EOF
 
 autocmd BufWritePre *.go lua goimports(1000)
@@ -618,3 +632,5 @@ autocmd Filetype go setlocal omnifunc=v:lua.vim.lsp.omnifunc
 " --- copy and paste straight onto system clipboard--- "
 " ---------------------------------------------------- "
 set clipboard=unnamedplus
+
+nnoremap <leader>t <cmd>TroubleToggle<cr>
